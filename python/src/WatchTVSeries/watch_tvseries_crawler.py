@@ -5,20 +5,19 @@ sys.path.append("..")
 import tools.NetworkTools as nt
 import tools.json_tools as jt
 from tools.logger_tool import *
+from optparse import OptionParser 
 
 logger = Logger().getlog()
 
-def fetch_tv_url_list(conf_file) :
-    conf = jt.load_conf(conf_file)
+def fetch_tv_url_list(conf) :
     content = nt.fetchUrlContent(conf["url"])
     pattern = re.compile(conf["tv_list_pattern"])
     match_data = re.findall(pattern, content) 
     return match_data
 
-def fetch_episode_info(conf_file, tv_url_list) :
+def fetch_episode_info(conf, tv_url_list) :
     logger.info("Begin to fetch_episode_info")
-    conf = jt.load_conf(conf_file)
-    result_file = codecs.open(conf["eps_info_file"], 'w', "utf-8")
+    result_file = codecs.open(conf["eps_info_file"], 'w', 'utf-8')
     for tv_info in iter(tv_url_list) :
         tv_episode_pattern = re.compile(conf["tv_episode_pattern"])
         episode_org_img_pattern = re.compile(r'a title="(.*?)"\s+href="(.*?)">.*?data-original="([^"]+)')
@@ -51,10 +50,22 @@ def fetch_episode_info(conf_file, tv_url_list) :
                         try :
                             result_file.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(tv_info[1], season_number,
                              eps_number, tv_home_base_url + eps_tailer_url, eps_title, eps_img_url))
-                        except IOError, msg:
+                        except Exception, msg:
                             logger.error('Write file excetion {} : {}'.format(msg, eps_detail))
 
                 break
             time.sleep(5)
-
     result_file.close()
+
+def run(conf_file) :
+    conf_json = jt.load_conf(conf_file)
+    tv_list = fetch_tv_url_list(conf_json)
+    fetch_episode_info(conf_json, tv_list)
+
+if __name__ == "__main__" :
+    usage = "usage: %prog [options] arg1 arg2"  
+    parser = OptionParser(usage = usage)   
+    parser.add_option("-c", "--conf",  action = "store", type = "string", 
+        dest = "conf_file",  help="It is the config file for the crawler.")
+    (options, args) = parser.parse_args()
+    run(options.conf_file)
