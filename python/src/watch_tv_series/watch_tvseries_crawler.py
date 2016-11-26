@@ -5,14 +5,14 @@ sys.path.append("..")
 import tools.NetworkTools as nt
 import tools.json_tools as jt
 from tools.logger_tool import *
-from optparse import OptionParser 
+from optparse import OptionParser
 
 logger = Logger().getlog()
 
 def fetch_tv_url_list(conf) :
     content = nt.fetchUrlContent(conf["url"])
     pattern = re.compile(conf["tv_list_pattern"])
-    match_data = re.findall(pattern, content) 
+    match_data = re.findall(pattern, content)
     return match_data
 
 def fetch_episode_info(conf, tv_url_list) :
@@ -37,6 +37,7 @@ def fetch_episode_info(conf, tv_url_list) :
                         match = episode_src_img_pattern.search(eps_detail)
                     if match == None:
                         logger.error('Vaild eps_detail : {}'.format(eps_detail))
+                        continue
                     eps_title = match.group(1)
                     eps_tailer_url = match.group(2)
                     eps_img_url = match.group(3)
@@ -63,9 +64,9 @@ def run(conf_file) :
     fetch_episode_info(conf_json, tv_list)
 
 if __name__ == "__main__" :
-    usage = "usage: %prog [options] arg1 arg2"  
-    parser = OptionParser(usage = usage)   
-    parser.add_option("-c", "--conf",  action = "store", type = "string", 
+    usage = "usage: %prog [options] arg1 arg2"
+    parser = OptionParser(usage = usage)
+    parser.add_option("-c", "--conf",  action = "store", type = "string",
         dest = "conf_file",  help="It is the config file for the crawler.")
     (options, args) = parser.parse_args()
     run(options.conf_file)

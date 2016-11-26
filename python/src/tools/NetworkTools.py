@@ -1,7 +1,9 @@
 import urllib2
-import sys 
+import sys
 import traceback
 import socket
+import re
+from logger_tool import *
 
 def fetchUrlContent(url, timeout = 5) :
 	headers = {'User-Agent':'Mozilla/5.0 (X11; U; Linux i686)Gecko/20071127 Firefox/2.0.0.11'}
@@ -11,14 +13,10 @@ def fetchUrlContent(url, timeout = 5) :
 	try :
 		socket_res = urllib2.urlopen(request, timeout=timeout)
 		content = socket_res.read()
-	except urllib2.URLError as e:
-		print "Request url error!"
-		traceback.print_exc(file=sys.stdout)
-	except socket.timeout as e :
-		print 'socket timeout for {}'.format(url)
+	except Exception, e:
+		logger.error('socket timeout for {}, {}'.format(url, e))
+		return None
 	finally :
 		if socket_res != None :
 			socket_res.close()
 	return content
-		
-
