@@ -4,7 +4,7 @@ import re
 import csv
 import urllib2
 sys.path.append("..")
-import tools.NetworkTools as nt
+import tools.network_tool as nt
 import tools.json_tools as jt
 from tools.logger_tool import *
 from optparse import OptionParser
@@ -27,6 +27,7 @@ def fetch_tv_total_page(conf_json) :
 #
 def fetch_tv_url_list(conf_json, total_num) :
     tv_show_csv = file(conf_json["tv_show_file"]["file_name"], 'wb')
+    result_file = codecs.open(conf_json["tv_show_file"]["file_name"], 'w', 'utf-8')
     write = csv.writer(tv_show_csv)
     write.writerow(conf_json["tv_show_file"]["column_name"].split(','))
     cnt = 0;
@@ -36,8 +37,9 @@ def fetch_tv_url_list(conf_json, total_num) :
             tv_list_url = conf_json["tv_list_template_url"].format(page_no * 20)
             # get http page content and replace \n \t  to ''
             timeout = int(conf_json["timeout"])
-            content = nt.fetchUrlContent(tv_list_url, timeout).replace('\n', '').replace('\t', '')
+            content = nt.fetchUrlContent(tv_list_url, timeout)
             if content != None :
+                content = content.replace('\n', '').replace('\t', '').replace('\t', '')
                 pattern = re.compile(conf_json["tv_show_pattern"])
                 # match all pattern return a list of all result
                 match_data = re.findall(pattern, content)
@@ -45,6 +47,7 @@ def fetch_tv_url_list(conf_json, total_num) :
                     logger.error('Bad format for url content : {}'.format(tv_list_url))
                     break
                 write.writerows(match_data)
+                # result_file.writelines(match_data)
                 cnt = cnt + len(match_data)
                 break
             time.sleep(5)
@@ -71,11 +74,12 @@ def fetch_episode_info(conf_json) :
             writer.writerow(conf_json["tv_episode_file"]["column_name"].split(','))
             timeout = int(conf_json["timeout"])
             eps_cnt = 0
-            for url, img, title, count in reader :
+            for url,img,title,count,score_int,score_float in reader :
                 real_url = conf_json['redirct_base_url'] + url.split('/')[-1]
                 for i in range(int(conf_json['retry_times'])) :
-                    content = nt.fetchUrlContent(real_url, timeout).replace('\n', '').replace('\t', '')
+                    content = nt.fetchUrlContent(real_url, timeout)
                     if content != None :
+                        content = content.replace('\n', '').replace('\t', '')
                         match = re.findall(pattern, content)
                         if match :
                             writer.writerows(match)

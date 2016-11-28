@@ -2,12 +2,11 @@ import sys
 import codecs
 import re
 sys.path.append("..")
-import tools.NetworkTools as nt
+import tools.network_tool as nt
 import tools.json_tools as jt
 from tools.logger_tool import *
 from optparse import OptionParser
 
-logger = Logger().getlog()
 
 def fetch_tv_url_list(conf) :
     content = nt.fetchUrlContent(conf["url"])
